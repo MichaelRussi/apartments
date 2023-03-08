@@ -9,15 +9,15 @@ The loop iterates over page numbers from 1 to 225 and for each page, it performs
 
 3)Uses the html_nodes() function from the rvest package to extract specific elements from the HTML code. Specifically, the code extracts the following information from each page:
 
-*address: the address of the property
-*square_meters: the area of the property in square meters
-*bedrooms: the number of bedrooms in the property
-*bathrooms: the number of bathrooms in the property
-*garage: the number of parking spaces available with the property
-*observation: a short description of the property
-*condominium: the monthly condominium fee (if applicable)
-*tax: the annual property tax (if applicable)
-*price: the asking price of the property
+/address: the address of the property
+/square_meters: the area of the property in square meters
+/bedrooms: the number of bedrooms in the property
+/bathrooms: the number of bathrooms in the property
+/garage: the number of parking spaces available with the property
+/observation: a short description of the property
+/condominium: the monthly condominium fee (if applicable)
+/tax: the annual property tax (if applicable)
+/price: the asking price of the property
 
 4)Uses the rbind() function to combine the extracted data from each page into a single data frame called apartments.
 
