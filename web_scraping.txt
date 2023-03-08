@@ -1,0 +1,66 @@
+##################  Web scraping of apartments for sale in Itajaí, Brazil.#####################
+
+
+install.packages('rvest') 
+install.packages('tidyverse') 
+install.packages('qpcR') 
+
+library(tidyverse)
+library(rvest)
+library(qpcR) 
+
+
+apartments <- data.frame() 
+
+for (page_result in seq(from = 1, to = 225, by = 1)) {
+
+link = paste0("https://www.zapimoveis.com.br/venda/apartamentos/sc+itajai/?onde=,Santa%20Catarina,Itaja%C3%AD,,,,,city,BR%3ESanta%20Catarina%3ENULL%3EItajai,-26.908286,-48.677517,&transacao=Venda&tipo=Im%C3%B3vel%20usado&tipoUnidade=Residencial,Apartamento&pagina=",
+                page_result)
+
+page = read_html(link)
+
+#select the variables 
+
+address <- page %>% 
+  html_nodes(".color-dark") %>%
+  html_text() 
+
+square_meters <- page %>% 
+  html_nodes(".js-areas .icon-size--regular+ span") %>%
+  html_text() 
+
+bedrooms <-  page %>% 
+  html_nodes(".js-bedrooms .icon-size--regular+ span") %>%
+  html_text() 
+
+bathrooms <- page %>% 
+  html_nodes(".js-bathrooms .icon-size--regular+ span") %>%
+  html_text()
+
+garage <- page %>% 
+  html_nodes(".js-parking-spaces .icon-size--regular+ span") %>%
+  html_text() 
+
+observation <- page%>%
+  html_nodes(".simple-card__highligths")%>%
+  html_text
+
+tax <- page%>%
+  html_nodes(".iptu .card-price__value") %>%
+  html_text()
+
+condominium <- page%>%
+  html_nodes(".condominium .card-price__value") %>%
+  html_text()
+
+price <- page %>% 
+  html_nodes(".heading-regular__bolder strong") %>%
+  html_text()
+
+
+apartments <-rbind(apartments,qpcR:::cbind.na(address, square_meters, bedrooms, bathrooms,garage,observation,condominium,tax,price))
+
+print(paste("Page:", page_result))
+
+}
+
