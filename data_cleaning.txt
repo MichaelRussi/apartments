@@ -1,0 +1,128 @@
+################################## DATA CLEANING ###############################################
+
+str(apartments)
+
+#First, we need to create a column containing the neighborhood of the apartments, we'll extract this
+#information from the column address using the string method str_extract() based on the list
+#of neighborhoods provided in the "local" string
+
+local <- c("Paciência|Nilo Bittencourt|Quilometro Doze|Rio do Meio|São Roque|Pioneiros|Santa Clara|Murta|Fazenda|Barra do Rio|Centro|Cordeiros| 
+|Dom Bosco|Praia Brava|Itaipava|Vila Operaria|Fiuza Lima|Cidade Nova|Sao Judas|Ressacada|Sao Joao|Espinheiros|São Vicente|Canhanduba|Fazendinha|Carvalho|Cidade Nova|Santa Regina|Salseiros|Cabeçudas")
+
+#create column neighborhood
+apartments$neighborhood <- str_extract(apartments$address,local)
+
+#check for the presence of NAs
+anyNA(apartments$neighborhood)
+
+#run this code if NAs are present
+ap.na <-apartments %>%
+  filter(is.na(neighborhood))
+
+#If we take a look at this new column created we'll see the presence of Fiuza Lima
+# which is not a neighborhood in Itajai, so we will replace this string for Sao Judas.
+apartments$neighborhood <- gsub("Fiuza Lima", "Sao Judas", apartments$neighborhood)
+
+#we will transform neighborhood to factor so we can check all the neighborhoods present
+#in the dataset using the summary function
+apartments$neighborhood <- factor(apartments$neighborhood) 
+
+summary(apartments$neighborhood) 
+
+
+#Next we will use the gsub() function to replace the "m²" string with nothing ("")
+#in the "square_meters" column of the "apartments" data frame.
+apartments$square_meters <- gsub("m²","", apartments$square_meters) 
+
+
+#Create a new variable "square_dash" that contains only the rows
+#where the "square_meter" column contains a dash "-"  using the function str_detect()
+square_dash <-apartments %>%
+  filter(str_detect(apartments$square_meters, "-")) 
+
+#Filters out the rows that contain a dash "-"in the "square_meter" column and assigns
+#the result back to the "apartments" data frame
+apartments <- apartments %>%
+  filter(!str_detect(apartments$square_meters, "-")) 
+
+
+#Use the as.numeric() function to convert the "square_meters" column from its current class
+#(character) to numeric, and assigns the result back to the "square_meter" column.
+class(apartments$square_meters)  
+apartments$square_meters <- as.numeric(apartments$square_meters) 
+
+summary(apartments$square_meters)
+
+#Next we will use the lapply function to apply the factor function on each column of the apartments
+#data frame specified in the "names" vector. The factor function is used to convert a vector
+#of values into a factor, which is a categorical variable in R, and assigns the result back to
+#the corresponding columns of the "apartments" data frame.
+
+names <- c("bedrooms","bathrooms","garage") 
+apartments[,names] <- lapply(apartments[,names],factor) 
+
+#Use str() to check if the variables were converted
+str(apartments)
+
+#Replace empty string values ("")  with NA values.
+apartments[apartments == ""] <- NA 
+
+#Calculate the percentage of missing values in each column of the apartments dataframe.
+round((colMeans(is.na(apartments)))*100) 
+
+#Remove variables with high percentage of NAs (tax, condominium and observation)
+apartments <- apartments %>% 
+  dplyr:::select(-tax, -condominium, -observation)
+
+
+#For price we first check it's class
+class(apartments$price)
+
+#Remove "R$" and dots
+apartments$price <- gsub(pattern="R$", replacement="",fixed = TRUE,apartments$price)
+apartments$price <- gsub(pattern=".", replacement="",fixed = TRUE,apartments$price) 
+
+#convert price to numeric
+apartments$price <- as.numeric(apartments$price)  
+
+#Use filter to check for the presence of NAs saving it in the variable price.na
+price.na <- apartments %>%
+  filter(is.na(price))
+
+#exclude price containing NAs
+apartments <- apartments %>%
+  filter(!is.na(price))
+
+#Create a new column "price_m2" in the apartments dataframe by dividing the "price" 
+#by the "square_meter" column using the mutate() function from the dplyr package
+
+apartments <- apartments %>%
+  mutate(price_m2 = round(price/square_meters))  
+
+
+#Finally we´ll work on the variable garage  using the summary function
+summary(apartments$garage)
+
+#we can see that this column present NAs, so we are going to check for the presence of NAs
+#in the whole dataset
+round((colMeans(is.na(apartments)))*100) 
+
+#NAs are present only in garage
+
+#Convert garage to numeric
+apartments$garage <- as.numeric(apartments$garage) 
+
+#take a look at the median value of garage
+summary(apartments$garage) 
+
+#Substitute NAs in garage for the median value of the variable 
+apartments$garage[is.na(apartments$garage)] <- 1
+summary(apartments$garage) 
+
+#Convert garage back to factor
+apartments$garage <- as.factor(apartments$garage)
+
+#Check the final result
+str(apartments)
+
+##### We are done! The apartments dataset is clean and ready to be explored! #######
