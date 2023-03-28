@@ -1,0 +1,342 @@
+############################## EXPLORATORY DATA ANALYSIS #############################
+
+library(tidyverse)
+library(forcats) 
+
+#load the dataset
+df <- read.csv('apartments.csv') 
+
+str(df) 
+
+#How does the distribution of apartment vary across different neighborhoods?
+
+df %>% 
+  group_by(neighborhood) %>% 
+  summarize(count = n())%>%
+  arrange(desc(count))%>%
+  mutate(freq = round((count/sum(count)*100)))%>%
+  mutate(cum_sum = cumsum(freq))%>%
+  print(n=27)
+
+#Praia Brava is the neighborhood with the highest number of apartments available for sale (30%) 
+#and Five neighborhoods out of 27 concentrate  75% of the total number of apartments for sale 
+
+
+#From now on we´ll select 16 out of 27 neighborhoods that concentrate at least 1% of apartments.
+
+#create selected variable 
+selected <- c('Praia Brava','Fazenda', 'Centro','Sao Joao', 'Vila Operaria',
+              'Sao Judas','Santa Clara','Ressacada','Dom Bosco','São Vicente',
+              'Cordeiros','Espinheiros','Cabeçudas','Itaipava','Carvalho',
+              'Fazendinha','Murta')
+
+#create a new column containing the selected neighborhoods.The remaining 5% will be 
+#renamed to others
+df$neighborhood_selected <- (if_else(df$neighborhood %in% selected, df$neighborhood, 'others'))
+
+str(df) 
+#visualize price, price_m2 and square meters for neighborhood selected
+
+library(forcats) 
+
+class(df$neighborhood_selected)  
+
+df$neighborhood_selected <- factor(df$neighborhood_selected) 
+
+#fct_rev and fct_reorder()
+
+#square_meters & neighborhood
+summary(df$square_meters)
+
+df %>%
+  filter(neighborhood_selected != 'others')%>%
+  filter(square_meters < 300)%>%
+  ggplot(aes(x=fct_rev(fct_reorder(neighborhood_selected, square_meters)),
+             y=square_meters))+
+  geom_boxplot()+
+  geom_jitter(aes(col=neighborhood_selected), alpha = 0.4, size=0.6)+
+  xlab('neighborhood')+
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle = 45))+
+  labs(title = "Area Vs Neighborhood")
+
+
+#price & neighborhood
+summary(df$price)
+
+df %>%
+  filter(neighborhood_selected != 'others')%>%
+  filter(price < 7000000)%>%
+  ggplot(aes(x=fct_rev(fct_reorder(neighborhood_selected, price)),
+             y=price))+
+  geom_boxplot() +
+  geom_jitter(aes(col=neighborhood_selected), alpha = 0.4, size=0.6)+
+  xlab('neighborhood')+
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle = 45))+
+  labs(title='Price Vs Neighborhood')
+
+
+#price_m2 & neighborhood
+summary(df$price_m2) 
+
+df %>%
+  filter(neighborhood_selected != 'Cabeçudas')%>%
+  filter(neighborhood_selected != 'others')%>%
+  filter(price_m2 < 40000)%>%
+  ggplot(aes(x=fct_rev(fct_reorder(neighborhood_selected, price_m2)),
+             y=price_m2))+
+  geom_boxplot() +
+  geom_jitter(aes(col=neighborhood_selected), alpha = 0.4, size=0.6)+
+  xlab('neighborhood')+
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle = 45))+
+  labs(title = 'Price per Square Meter Vs Neighborhood')
+
+
+#Santa Clara and Fazendinha are sub-regions of Praia Brava and Fazenda,
+#respectively
+df$neighborhood_selected[df$neighborhood_selected == 'Santa Clara'] <- 'Praia Brava'
+
+df$neighborhood_selected[df$neighborhood_selected == 'Fazendinha'] <- 'Fazenda'
+
+
+#create groups based on price per square meter and neighborhood localization
+
+g1 <- df%>%
+  filter(neighborhood %in% c('Praia Brava', 'Cabeçudas', 'Fazenda'))
+
+g2 <- df%>%
+  filter(neighborhood %in% c('Centro','Ressacada','Vila Operaria','Dom Bosco', 'Sao Judas', 'Sao Joao'))
+
+g3 <- df%>%
+  filter(neighborhood %in% c('São Vicente','Cordeiros','Carvalho','Itaipava','Murta','Espinheiros'))
+
+
+#price, bedrooms & bathrooms for g1
+
+g1$bedrooms <- factor(g1$bedrooms) 
+
+g1%>%
+  filter(bedrooms %in% c(1,2,3,4,5))%>%
+  filter(price < 6000000) %>%
+  ggplot(aes(x=fct_reorder(bedrooms, price),
+             y=price, fill=bedrooms))+
+  geom_boxplot()+
+  theme(legend.position = "none") +
+  xlab('Bedrooms')+
+  labs(title = 'Price Distribution by Number of Bedrooms for Properties Under $6 Million')
+
+
+g1%>%
+  filter(bedrooms %in% c(1,2,3,4,5))%>%
+  filter(bathrooms %in% c(1,2,3,4))%>%
+  filter(price < 13000000) %>%
+  ggplot(aes(x=fct_reorder(bedrooms, price),
+             y=price))+
+  geom_boxplot() +
+  geom_jitter(aes(col=bedrooms), alpha = 0.7, size=0.7)+
+  xlab('bedrooms') +
+  facet_grid(~bathrooms)+
+  labs(title = 'Price Distribution by Number of Bedrooms and Bathrooms for Properties Under $13 Million') 
+  
+
+  #price, bedrooms & garage for g1
+  
+  g1$bedrooms <- factor(g1$bedrooms) 
+  
+  g1$garage <- factor(g1$garage)
+  summary(g1$garage) 
+  
+  g1%>%
+    filter(bedrooms %in% c(1,2,3,4,5))%>%
+    filter(price < 6000000) %>%
+    ggplot(aes(x=fct_reorder(bedrooms, price),
+               y=price, fill=bedrooms))+
+    geom_boxplot()
+  
+  g1%>%
+    filter(bedrooms %in% c(1,2,3,4,5))%>%
+    filter(garage %in% c(1,2,3,4,5))%>%
+    filter(price < 13000000) %>%
+    ggplot(aes(x=fct_reorder(bedrooms, price),
+               y=price))+
+    geom_boxplot() +
+    geom_jitter(aes(col=bedrooms), alpha = 0.4, size=0.9)+
+    xlab('bedrooms') +
+    facet_grid(~garage)+
+    labs(title = 'Price Distribution by Number of Bedrooms and Garage for Properties Under $13 Million')
+  
+
+#correlation area and price
+cor(df$square_meters, df$price) #strong correlation
+
+#correlation area & price for each group
+cor(g1$square_meters, g1$price)
+
+cor(g2$square_meters, g2$price) 
+
+cor(g3$square_meters, g3$price)
+
+
+#bedrooms
+df$bedrooms <- factor(df$bedrooms) 
+
+g1%>%
+  filter(bedrooms %in% c(1,2,3,4,5))%>%
+  ggplot(aes(x=bedrooms, fill=bedrooms))+
+  geom_bar()+
+  facet_grid(~neighborhood)+
+  labs(title ="Bedroom Distribution by Neighborhood")
+
+
+#garage
+g1%>%
+  filter(garage %in% c(1,2,3,4,5))%>%
+  ggplot(aes(x=garage, fill=garage))+
+  geom_bar()+
+  facet_grid(~neighborhood)+
+  labs(title ="Garage Distribution by Neighborhood")
+
+
+#square meters, price & bedrooms
+summary(g1$square_meters) 
+
+g1 %>%
+  filter(bedrooms %in% c(1,2,3,4))%>%
+  filter(price < 10000000) %>%
+  ggplot(aes(x=square_meters, y=price)) +
+  geom_point(color='black',alpha=0.5, shape=21, size=3, aes(fill=factor(bedrooms)))+
+  labs(title = "Price vs. Square Meters for Homes with 1-4 Bedrooms Priced under 10 Million")
+  
+
+# discretize square_meters
+g1<-g1%>%
+  mutate(ap_sizes = cut(square_meters,breaks = c(10,40,50,80,130,160,900)))
+
+class(g1$ap_sizes) 
+
+summary(g1$ap_sizes) 
+
+g_na <- g1 %>% 
+  filter(is.na(ap_sizes)) 
+
+g1 %>%
+  filter(price < 10000000) %>%
+  filter(!is.na(ap_sizes))%>%
+  ggplot(aes(x=fct_rev(fct_reorder(ap_sizes, price)),
+             y=price))+
+  geom_boxplot() +
+  geom_jitter(aes(col=ap_sizes), alpha = 0.7, size=1)+
+  xlab('Apartments Sizes')+
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle = 45))+
+  labs(title='Price Vs Sizes')
+
+g1%>%
+  count(ap_sizes) 
+
+g1%>%
+  filter(!is.na(ap_sizes))%>%
+  ggplot(aes(x=fct_rev(fct_infreq(ap_sizes)), fill=ap_sizes), 
+             fill=ap_sizes)+
+  geom_bar() +
+  facet_wrap(~neighborhood)+
+  labs(title='Frequency of Apartments Size by Neighborhood')
+
+
+#median price per neighborhood
+df %>%
+  filter(neighborhood_selected != "others") %>%
+  group_by(neighborhood_selected) %>% 
+  summarize(median_price = median(price))%>%
+  arrange(desc(median_price))%>%
+  print(n=27)
+
+
+#area, price & neighborhood
+g1 %>%
+  filter(square_meters < 1000) %>%
+  ggplot(aes(x=square_meters, y=price, color=neighborhood, size=price)) +
+  geom_point(alpha=0.4)+
+  labs(title = "Relationship between Area and Price")
+
+#area, price per square meter & neighborhood
+g1%>%
+  filter(price_m2 < 65000) %>%
+  filter(square_meters < 750) %>%
+  ggplot(aes(x=square_meters, y=price_m2, color=neighborhood)) +
+  geom_point(alpha=0.7)+
+  labs(title = "Relationship between Area and Price per Square Meter")
+
+
+### median prices across neighborhoods
+summary(df$price_m2)
+
+median_price <- df %>% 
+  group_by(neighborhood_selected) %>% 
+  summarize(median_price_m2 = round(median(price_m2)))%>%
+  arrange(desc(median_price_m2))
+
+#add median price of the entire dataset
+median_price <-  median_price %>%
+  add_row(neighborhood_selected = 'Dataset_median', median_price_m2 = 10116)
+
+median_price %>%
+  mutate(highlight_flag = ifelse(neighborhood_selected == 'Dataset_median', T, F))%>%
+  filter(neighborhood_selected !='others') %>%
+  ggplot(aes(x=fct_rev(fct_reorder(neighborhood_selected, median_price_m2)),
+             y = median_price_m2)) +
+  geom_col(aes(fill = highlight_flag)) +
+  scale_fill_manual(values = c('#595959', 'red'))+
+  geom_text(aes(label = median_price_m2), vjust = -0.5) +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle = 45))+
+  xlab("neighborhood")+
+  labs(title = "Median Price per Square Meter for the Entire dataset")+
+  ylim(0, 19500) 
+
+
+#price per square meter & garage
+
+summary(g1$price_m2) 
+
+g1 %>% 
+  filter(garage != 8 & garage != 7)%>%
+  group_by(garage) %>% 
+  summarize(median_price_m2 = mean(price_m2))%>%
+  arrange(desc(garage))
+
+g1 %>%
+  filter(price_m2 < 75000)%>%
+  filter(garage != 8 & garage != 7)%>%
+  ggplot(aes(x=fct_reorder(garage, price_m2),
+             y=price_m2, fill=garage))+
+  geom_boxplot()+
+  xlab("Garage")+
+  theme(legend.position = "none")+
+  labs(title = "Relationship between Number of Garage and Price per Square meter")
+
+#distribution of price across the entire dataset 
+summary(df$price)
+
+summary(df$price_m2)
+
+df %>%
+  ggplot(aes(x=price))+
+  geom_histogram(bins = 210, color = "#000000", fill = "#0099F8")+
+  geom_vline(aes(xintercept = mean(price)), color = "#000000", size = 1.25) +
+  geom_vline(aes(xintercept = mean(price) + sd(price)), color = "#000000", size = 1, linetype = "dashed") +
+  geom_vline(aes(xintercept = mean(price) - sd(price)), color = "#000000", size = 1, linetype = "dashed")+
+  labs(
+    title = "Histogram of Price Across entire dataset",
+    caption = "Source: zapimoveis.com.br",
+    x = "Price",
+    y = "Count"
+  )
+
+
+  
+############################################ END #############################################
+
+
