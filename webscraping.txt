@@ -7,8 +7,13 @@ install.packages('qpcR')
 
 library(tidyverse)
 library(rvest)
-library(qpcR) 
+library(qpcR)
 
+#Web scraping of apartments for sale in Itajaí, Brazil
+#This R code is a loop that scrapes data from a real estate website called Zap Imóveis. 
+#The loop iterates over page numbers from 1 to 225 and for each page, it performs the following steps:
+
+#1)Constructs a URL for the given page number using the paste0() function.
 
 apartments <- data.frame() 
 
@@ -16,6 +21,8 @@ for (page_result in seq(from = 1, to = 225, by = 1)) {
 
 link = paste0("https://www.zapimoveis.com.br/venda/apartamentos/sc+itajai/?onde=,Santa%20Catarina,Itaja%C3%AD,,,,,city,BR%3ESanta%20Catarina%3ENULL%3EItajai,-26.908286,-48.677517,&transacao=Venda&tipo=Im%C3%B3vel%20usado&tipoUnidade=Residencial,Apartamento&pagina=",
                 page_result)
+
+#2)Uses the read_html() function from the rvest package to fetch the HTML code of the page at the #constructed URL and uses the html_nodes() function from the same package to extract specific elements from the HTML code
 
 page = read_html(link)
 
@@ -57,10 +64,13 @@ price <- page %>%
   html_nodes(".heading-regular__bolder strong") %>%
   html_text()
 
+#3)Uses the rbind() function to combine the extracted data from each page into a single data frame called #apartments.
 
 apartments <-rbind(apartments,qpcR:::cbind.na(address, square_meters, bedrooms, bathrooms,garage,observation,condominium,tax,price))
 
-print(paste("Page:", page_result))
+print(paste("Page:", page_result)) #5)Prints the current page number.
 
 }
 
+
+#Overall, the code is scraping real estate data from Zap Imóveis and storing it in a data frame for #further analysis and modeling.

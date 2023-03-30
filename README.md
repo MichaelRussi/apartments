@@ -1,26 +1,49 @@
-# apartments
-Web scraping of apartments for sale in Itajaí, Brazil
-This R code is a loop that scrapes data from a real estate website called Zap Imóveis. 
-The loop iterates over page numbers from 1 to 225 and for each page, it performs the following steps:
+# Itajai Apartments Data Analysis
 
-1)Constructs a URL for the given page number using the paste0() function. The URL includes filters for location, transaction type, property type, and other criteria.
+This is a data analysis project written in R programming language using R Studio. The objective of this project is to get an overview of apartments for sale in the city of Itajai.
 
-2)Uses the read_html() function from the rvest package to fetch the HTML code of the page at the constructed URL.
+## Data Collection
 
-3)Uses the html_nodes() function from the rvest package to extract specific elements from the HTML code. Specifically, the code extracts the following information from each page:
+The data was collected using the library rvest on the website zapimoveis.com.br. The data collection script is located in the `webscraping.txt` file.
 
-/address: the address of the property
-/square_meters: the area of the property in square meters
-/bedrooms: the number of bedrooms in the property
-/bathrooms: the number of bathrooms in the property
-/garage: the number of parking spaces available with the property
-/observation: a short description of the property
-/condominium: the monthly condominium fee (if applicable)
-/tax: the annual property tax (if applicable)
-/price: the asking price of the property
+## Data Cleaning
 
-4)Uses the rbind() function to combine the extracted data from each page into a single data frame called apartments.
+The collected data was cleaned using the `data_cleaning.txt` script, which removes any duplicates or incomplete data.
 
-5)Prints the current page number.
+## Exploratory Data Analysis
 
-Overall, the code is scraping real estate data from Zap Imóveis and storing it in a data frame for further analysis or modeling.
+The `eda.txt` script contains an exploratory data analysis of the cleaned data. This script generates several visualizations and statistical summaries to provide insights into the data.
+
+## Simple Linear Regression
+
+The `linear_regression.txt` script performs a simple linear regression to predict the price of apartments based on their features.
+
+## Requirements
+
+This project requires R and R Studio to be installed on your computer.
+
+## Usage
+
+To use this project copy and paste the scripts into Rstudio in the following order:
+
+1. `webscraping.txt`
+2. `data_cleaning.txt`
+3. `eda.txt`
+4. `linear_regression.txt`
+
+## Contributing
+
+To contribute to this project, please follow these steps:
+
+1. Fork the repository.
+2. Create a new branch.
+3. Make your changes and commit them.
+4. Push to the branch.
+5. Create a pull request.
+
+## License
+
+This project is licensed under the MIT License. See the `LICENSE` file for more information.
+
+
+
